@@ -12,13 +12,13 @@ const char* term[]    = {"alacritty",               0};
 const char* scrot[]   = {"scr",                     0};
 const char* briup[]   = {"bri", "10", "+",          0};
 const char* bridown[] = {"bri", "10", "-",          0};
+const char* ex[]      = {"pkill", "sowm",           0};
 const char* voldown[] = {"pactl", "set-sink-volume", "0", "-5%",    0};
 const char* volup[]   = {"pactl", "set-sink-volume", "0", "+5%",    0};
 const char* volmute[] = {"pactl", "set-sink-mute", "0", "toggle",   0};
-const char* colors[]  = {"bud", "/home/goldie/Pictures/Wallpapers", 0};
 
 static struct key keys[] = {
-    {MOD,      XK_q,   win_kill,        {0}},
+    {MOD,      XK_w,   win_kill,        {0}},
     {MOD,      XK_c,   win_center,      {0}},
     {MOD,      XK_l,   win_snap_left,   {0}},
     {MOD,      XK_r,   win_snap_right,  {0}},
@@ -28,9 +28,10 @@ static struct key keys[] = {
     {Mod1Mask|ShiftMask, XK_Tab, win_prev,   {0}},
 
     {MOD, XK_space,     run, {.com = menu}},
-    {MOD, XK_w,         run, {.com = colors}},
     {MOD, XK_p,         run, {.com = scrot}},
     {MOD, XK_Return,    run, {.com = term}},
+
+    {MOD|ShiftMask, XK_e,    run, {.com = ex}},
 
     {0,   XF86XK_AudioLowerVolume,  run, {.com = voldown}},
     {0,   XF86XK_AudioRaiseVolume,  run, {.com = volup}},

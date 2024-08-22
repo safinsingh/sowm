@@ -136,12 +136,14 @@ void win_center(const Arg arg) {
 
 void win_snap_left(const Arg arg) {
     if (!cur) return;
+    cur->f = 0;
 
     XMoveResizeWindow(d, cur->w, 0, GAP_SIZE, sw / 2, sh - GAP_SIZE);
 }
 
 void win_snap_right(const Arg arg) {
     if (!cur) return;
+    cur->f = 0;
 
     XMoveResizeWindow(d, cur->w, sw / 2, GAP_SIZE, sw / 2, sh - GAP_SIZE);
 }
