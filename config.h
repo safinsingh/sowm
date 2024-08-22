@@ -3,7 +3,9 @@
 
 #define MOD Mod4Mask
 
-#define GAP_SIZE 0
+#define BAR_SIZE 16
+#define BAR_BOTTOM (1)
+#define SCREEN_TOP (BAR_BOTTOM ? 0 : BAR_SIZE)
 const char* barname = "polybar";
 
 

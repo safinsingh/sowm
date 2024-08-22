@@ -4,6 +4,7 @@
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
+#include <X11/Xatom.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -138,14 +139,14 @@ void win_snap_left(const Arg arg) {
     if (!cur) return;
     cur->f = 0;
 
-    XMoveResizeWindow(d, cur->w, 0, GAP_SIZE, sw / 2, sh - GAP_SIZE);
+    XMoveResizeWindow(d, cur->w, 0, SCREEN_TOP, sw / 2, sh - BAR_SIZE);
 }
 
 void win_snap_right(const Arg arg) {
     if (!cur) return;
     cur->f = 0;
 
-    XMoveResizeWindow(d, cur->w, sw / 2, GAP_SIZE, sw / 2, sh - GAP_SIZE);
+    XMoveResizeWindow(d, cur->w, sw / 2, SCREEN_TOP, sw / 2, sh - BAR_SIZE);
 }
 
 void win_fs(const Arg arg) {
@@ -153,7 +154,7 @@ void win_fs(const Arg arg) {
 
     if ((cur->f = cur->f ? 0 : 1)) {
         win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
-        XMoveResizeWindow(d, cur->w, 0, GAP_SIZE, sw, sh - GAP_SIZE);
+        XMoveResizeWindow(d, cur->w, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
     } else {
         XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
     }
