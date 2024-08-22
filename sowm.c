@@ -11,7 +11,7 @@
 
 #include "sowm.h"
 
-static client       *list = {0}, *ws_list[10] = {0}, *cur;
+static client       *list = {0}, *ws_list[6] = {0}, *cur;
 static int          ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
 
@@ -132,6 +132,18 @@ void win_center(const Arg arg) {
 
     win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
     XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
+}
+
+void win_snap_left(const Arg arg) {
+    if (!cur) return;
+
+    XMoveResizeWindow(d, cur->w, 0, GAP_SIZE, sw / 2, sh - GAP_SIZE);
+}
+
+void win_snap_right(const Arg arg) {
+    if (!cur) return;
+
+    XMoveResizeWindow(d, cur->w, sw / 2, GAP_SIZE, sw / 2, sh - GAP_SIZE);
 }
 
 void win_fs(const Arg arg) {
