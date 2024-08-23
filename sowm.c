@@ -161,6 +161,47 @@ void win_fs(const Arg arg) {
     cur_win_resize_proc(WIN_RSZ_FS, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
 }
 
+void win_split2(const Arg arg) {
+    if (!cur) return;
+
+    int i = 0;
+    for win {
+        i++;
+    }
+    if (i == 2) {
+        win_snap_left((Arg){0});
+        cur->w = cur->prev->w;
+        win_snap_right((Arg){0});
+        cur->w = cur->next->w;
+    }
+}
+
+void win_swap2(const Arg arg) {
+    if (!cur) return;
+
+    int i = 0;
+    int snl = 0;
+    int snr = 0;
+    for win {
+        i++;
+        snl |= t->wrsz == WIN_RSZ_SNL;
+        snr |= t->wrsz == WIN_RSZ_SNR;
+    }
+    if (i == 2 && snl && snr) {
+        if (cur->wrsz == WIN_RSZ_SNL) {
+            win_snap_right((Arg){0});
+            cur->w = cur->prev->w;
+            win_snap_left((Arg){0});
+            cur->w = cur->next->w;
+        } else {
+            win_snap_left((Arg){0});
+            cur->w = cur->prev->w;
+            win_snap_right((Arg){0});
+            cur->w = cur->next->w;
+        }
+    }
+}
+
 void win_to_ws(const Arg arg) {
     int tmp = ws;
 
