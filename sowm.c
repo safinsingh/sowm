@@ -5,6 +5,7 @@
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xutil.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -173,6 +174,7 @@ int find_last2(Window ws[2]) {
 
     do {
         char* winame = NULL;
+        // add XFree
         if (!XFetchName(d, c->w, &winame) || winame == NULL ||
             strncmp(winame, barname, strlen(barname))) {
             ws[found++] = c->w;
@@ -288,11 +290,26 @@ void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
     XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
-    win_size(w, &wx, &wy, &ww, &wh);
     win_add(w);
     cur = list->prev;
 
     if (wx + wy == 0) win_center((Arg){0});
+
+    char* wm_class = NULL;
+    XClassHint class_hint;
+    if (XGetClassHint(d, w, &class_hint)) {
+        wm_class = class_hint.res_name;
+        if (wm_class != NULL) {
+            for (int i = 0; auto_fullscreen[i] != 0; i++) {
+                if (strstr(wm_class, auto_fullscreen[i]) != NULL) {
+                    win_fs((Arg){0});
+                }
+            }
+        }
+        if (class_hint.res_name) XFree(class_hint.res_name);
+        if (class_hint.res_class) XFree(class_hint.res_class);
+    }
+    win_size(w, &wx, &wy, &ww, &wh);
 
     XMapWindow(d, w);
     win_focus(list->prev);
