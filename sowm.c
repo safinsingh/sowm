@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "sowm.h"
 
@@ -161,44 +162,49 @@ void win_fs(const Arg arg) {
     cur_win_resize_proc(WIN_RSZ_FS, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
 }
 
-void win_split2(const Arg arg) {
+
+// find last two (non-bar) focused windows
+int find_last2(Window ws[2]) {
     if (!cur) return;
 
-    int i = 0;
-    for win {
-        i++;
+    int found = 0;
+    for win_back {
+        if (found == 2) return 1;
+
+        char* winame = NULL;
+        if (!XFetchName(d, t->w, &winame) || winame == NULL ||
+            strncmp(winame, barname, strlen(barname))) {
+            ws[found++] = t->w;
+        }
     }
-    if (i == 2) {
+    return 0;
+}
+
+void win_split2(const Arg arg) {
+    Window ws[2];
+    if (find_last2(ws)) {
+        Window cur_fcs = cur->w;
+        cur->w = ws[0];
         win_snap_left((Arg){0});
-        cur->w = cur->prev->w;
+        cur->w = ws[1];
         win_snap_right((Arg){0});
-        cur->w = cur->next->w;
+        cur->w = cur_fcs;
     }
 }
 
 void win_swap2(const Arg arg) {
-    if (!cur) return;
+    if (!cur || !cur->prev) return;
 
-    int i = 0;
-    int snl = 0;
-    int snr = 0;
-    for win {
-        i++;
-        snl |= t->wrsz == WIN_RSZ_SNL;
-        snr |= t->wrsz == WIN_RSZ_SNR;
-    }
-    if (i == 2 && snl && snr) {
-        if (cur->wrsz == WIN_RSZ_SNL) {
-            win_snap_right((Arg){0});
-            cur->w = cur->prev->w;
-            win_snap_left((Arg){0});
-            cur->w = cur->next->w;
-        } else {
-            win_snap_left((Arg){0});
-            cur->w = cur->prev->w;
-            win_snap_right((Arg){0});
-            cur->w = cur->next->w;
-        }
+    if (cur->wrsz == WIN_RSZ_SNL) {
+        win_snap_right((Arg){0});
+        cur->w = cur->prev->w;
+        win_snap_left((Arg){0});
+        cur->w = cur->next->w;
+    } else {
+        win_snap_left((Arg){0});
+        cur->w = cur->prev->w;
+        win_snap_right((Arg){0});
+        cur->w = cur->next->w;
     }
 }
 

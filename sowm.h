@@ -1,6 +1,7 @@
 #include <X11/Xlib.h>
 
 #define win        (client *t=0, *c=list; c && t!=list->prev; t=c, c=c->next)
+#define win_back   (client *t=0, *c=list->prev; c && t!=list; t=c, c=c->prev)
 #define ws_save(W) ws_list[W] = list
 #define ws_sel(W)  list = ws_list[ws = W]
 #define MAX(a, b)  ((a) > (b) ? (a) : (b))
@@ -27,16 +28,17 @@ struct key {
 };
 
 typedef enum win_resized_ty {
-    WIN_RSZ_OG  = 0b000,
-    WIN_RSZ_SNL = 0b001,
-    WIN_RSZ_SNR = 0b010,
-    WIN_RSZ_FS  = 0b100
+    WIN_RSZ_OG  = 0,
+    WIN_RSZ_SNL = 1 << 0,
+    WIN_RSZ_SNR = 1 << 1,
+    WIN_RSZ_FS  = 1 << 2
 } win_resized_ty_t;
 
 typedef struct client {
     struct client *next, *prev;
     // wrsz = "window resized to" type
-    int wrsz, wx, wy;
+    win_resized_ty_t wrsz;
+    int wx, wy;
     unsigned int ww, wh;
     Window w;
 } client;
@@ -57,6 +59,7 @@ void win_center(const Arg arg);
 void win_snap_left(const Arg arg);
 void win_snap_right(const Arg arg);
 void win_split2(const Arg arg);
+void win_swap2(const Arg arg);
 void win_del(Window w);
 void win_fs(const Arg arg);
 void win_focus(client *c);
