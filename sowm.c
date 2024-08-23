@@ -165,18 +165,21 @@ void win_fs(const Arg arg) {
 
 // find last two (non-bar) focused windows
 int find_last2(Window ws[2]) {
-    if (!cur) return;
+    if (!cur) return 0;
 
+    client* front = cur;
+    client* c = cur;
     int found = 0;
-    for win_back {
-        if (found == 2) return 1;
 
+    do {
         char* winame = NULL;
-        if (!XFetchName(d, t->w, &winame) || winame == NULL ||
+        if (!XFetchName(d, c->w, &winame) || winame == NULL ||
             strncmp(winame, barname, strlen(barname))) {
-            ws[found++] = t->w;
+            ws[found++] = c->w;
+            if (found == 2) return 1;
         }
-    }
+        c = c->prev;
+    } while (c != front);
     return 0;
 }
 
