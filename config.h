@@ -3,7 +3,7 @@
 
 #define MOD Mod4Mask
 
-#define BAR_SIZE 16
+#define BAR_SIZE 24
 #define BAR_BOTTOM (1)
 #define SCREEN_TOP (BAR_BOTTOM ? 0 : BAR_SIZE)
 const char* barname = "polybar";
@@ -22,10 +22,11 @@ const char* volmute[] = {"pactl", "set-sink-mute", "0", "toggle",   0};
 static struct key keys[] = {
     {MOD,      XK_w,   win_kill,        {0}},
     {MOD,      XK_c,   win_center,      {0}},
-    {MOD,      XK_l,   win_snap_left,   {0}},
-    {MOD,      XK_r,   win_snap_right,  {0}},
     {MOD,      XK_f,   win_fs,          {0}},
 
+    {MOD,           XK_l,   win_snap_left,   {0}},
+    {MOD,           XK_r,   win_snap_right,  {0}},
+    
     {Mod1Mask,           XK_Tab, win_next,   {0}},
     {Mod1Mask|ShiftMask, XK_Tab, win_prev,   {0}},
 

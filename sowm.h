@@ -26,9 +26,17 @@ struct key {
     const Arg arg;
 };
 
+typedef enum win_resized_ty {
+    WIN_RSZ_OG  = 0b000,
+    WIN_RSZ_SNL = 0b001,
+    WIN_RSZ_SNR = 0b010,
+    WIN_RSZ_FS  = 0b100
+} win_resized_ty_t;
+
 typedef struct client {
     struct client *next, *prev;
-    int f, wx, wy;
+    // wrsz = "window resized to" type
+    int wrsz, wx, wy;
     unsigned int ww, wh;
     Window w;
 } client;

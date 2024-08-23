@@ -52,7 +52,7 @@ void notify_enter(XEvent *e) {
 }
 
 void notify_motion(XEvent *e) {
-    if (!mouse.subwindow || cur->f) return;
+    if (!mouse.subwindow || cur->wrsz == WIN_RSZ_FS) return;
 
     while(XCheckTypedEvent(d, MotionNotify, e));
 
@@ -135,29 +135,30 @@ void win_center(const Arg arg) {
     XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
 }
 
-void win_snap_left(const Arg arg) {
+void cur_win_resize_proc(win_resized_ty_t target_wrsz, int x, int y, unsigned int w, unsigned int h) {
     if (!cur) return;
-    cur->f = 0;
 
-    XMoveResizeWindow(d, cur->w, 0, SCREEN_TOP, sw / 2, sh - BAR_SIZE);
+    if (cur->wrsz == target_wrsz) {
+        XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
+        cur->wrsz = WIN_RSZ_OG;
+        return;
+    } else if (cur->wrsz == WIN_RSZ_OG) {
+        win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
+    }
+    XMoveResizeWindow(d, cur->w, x, y, w, h);
+    cur->wrsz = target_wrsz; 
+}
+
+void win_snap_left(const Arg arg) {
+    cur_win_resize_proc(WIN_RSZ_SNL, 0, SCREEN_TOP, sw / 2, sh - BAR_SIZE);
 }
 
 void win_snap_right(const Arg arg) {
-    if (!cur) return;
-    cur->f = 0;
-
-    XMoveResizeWindow(d, cur->w, sw / 2, SCREEN_TOP, sw / 2, sh - BAR_SIZE);
+    cur_win_resize_proc(WIN_RSZ_SNR, sw / 2, SCREEN_TOP, sw / 2, sh - BAR_SIZE);
 }
 
 void win_fs(const Arg arg) {
-    if (!cur) return;
-
-    if ((cur->f = cur->f ? 0 : 1)) {
-        win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
-        XMoveResizeWindow(d, cur->w, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
-    } else {
-        XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
-    }
+    cur_win_resize_proc(WIN_RSZ_FS, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
 }
 
 void win_to_ws(const Arg arg) {
