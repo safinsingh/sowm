@@ -163,6 +163,15 @@ void win_fs(const Arg arg) {
     cur_win_resize_proc(WIN_RSZ_FS, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
 }
 
+int is_bar(Window w) {
+    char* winame = NULL;
+    int ret = 0;
+    if (XFetchName(d, w, &winame) && winame != NULL) {
+        ret = strncmp(winame, barname, strlen(barname)) == 0;
+        XFree(winame);
+    }
+    return ret;            
+}
 
 // find last two (non-bar) focused windows
 int find_last2(Window ws[2]) {
@@ -175,8 +184,7 @@ int find_last2(Window ws[2]) {
     do {
         char* winame = NULL;
         // add XFree
-        if (!XFetchName(d, c->w, &winame) || winame == NULL ||
-            strncmp(winame, barname, strlen(barname))) {
+        if (!is_bar(c->w)) {
             ws[found++] = c->w;
             if (found == 2) return 1;
         }
@@ -256,17 +264,7 @@ void ws_go(const Arg arg) {
 
     ws_sel(tmp);
 
-    for win {
-        char* winame = NULL;
-        if (!XFetchName(d, c->w, &winame) || winame == NULL) {
-            XUnmapWindow(d, c->w);
-        } else {
-            if (strncmp(winame, barname, strlen(barname))) {
-                XUnmapWindow(d, c->w);
-            }
-            XFree(winame);
-        }
-    }
+    for win if (!is_bar(c->w)) XUnmapWindow(d, c->w);
 
     ws_sel(arg.i);
 
