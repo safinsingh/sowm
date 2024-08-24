@@ -182,8 +182,6 @@ int find_last2(Window ws[2]) {
     int found = 0;
 
     do {
-        char* winame = NULL;
-        // add XFree
         if (!is_bar(c->w)) {
             ws[found++] = c->w;
             if (found == 2) return 1;
@@ -240,6 +238,7 @@ void win_to_ws(const Arg arg) {
 
 void win_prev(const Arg arg) {
     if (!cur) return;
+    if (is_bar(cur->prev->w)) cur = cur->prev;
 
     XRaiseWindow(d, cur->prev->w);
     win_focus(cur->prev);
@@ -247,6 +246,7 @@ void win_prev(const Arg arg) {
 
 void win_next(const Arg arg) {
     if (!cur) return;
+    if (is_bar(cur->next->w)) cur = cur->next;
 
     XRaiseWindow(d, cur->next->w);
     win_focus(cur->next);
