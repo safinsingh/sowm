@@ -14,6 +14,7 @@ const char* auto_fullscreen[] = {"brave", "code", 0};
 const char* menu[]    = {"rofi", "-show", "run",    0};
 const char* term[]    = {"alacritty",               0};
 const char* scrot[]   = {"scr",                     0};
+const char* lock[]    = {"xsecurelock",             0};
 const char* briup[]   = {"bri", "10", "+",          0};
 const char* bridown[] = {"bri", "10", "-",          0};
 const char* ex[]      = {"pkill", "sowm",           0};
@@ -34,9 +35,10 @@ static struct key keys[] = {
     {Mod1Mask,           XK_Tab, win_next,   {0}},
     {Mod1Mask|ShiftMask, XK_Tab, win_prev,   {0}},
 
-    {MOD, XK_space,     run, {.com = menu}},
-    {MOD, XK_p,         run, {.com = scrot}},
-    {MOD, XK_Return,    run, {.com = term}},
+    {MOD, XK_space,         run, {.com = menu}},
+    {MOD, XK_p,             run, {.com = scrot}},
+    {MOD, XK_Return,        run, {.com = term}},
+    {MOD|ShiftMask, XK_l,   run, {.com = lock}},
 
     {MOD|ShiftMask, XK_e,    run, {.com = ex}},
 
