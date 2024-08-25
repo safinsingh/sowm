@@ -225,10 +225,6 @@ int find_last2_snapped(client* cs[2]) {
 
     do {
         if (!is_bar(c->w)) {
-        FILE* f=fopen("m.log","a+");
-        fprintf(f, "maow: %d\n", c->wrsz);
-        fflush(f);
-        fclose(f);
             if (c->wrsz == WIN_RSZ_SNL || c->wrsz == WIN_RSZ_SNR) {
                 if (first_wrsz == 0) {
                     first_wrsz = c->wrsz;
