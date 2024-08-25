@@ -163,18 +163,30 @@ void win_fs(const Arg arg) {
     cur_win_resize_proc(WIN_RSZ_FS, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
 }
 
-int is_bar(Window w) {
-    char* winame = NULL;
-    int ret = 0;
-    if (XFetchName(d, w, &winame) && winame != NULL) {
-        ret = strncmp(winame, barname, strlen(barname)) == 0;
-        XFree(winame);
+int win_class_contains(Window w, char* needle) {
+    char* wm_class = NULL;
+    XClassHint class_hint;
+    int found = 0;
+
+    if (XGetClassHint(d, w, &class_hint)) {
+        if (class_hint.res_class) {
+            found |= strstr(class_hint.res_class, needle) != NULL;
+            XFree(class_hint.res_class);
+        }
+        if (class_hint.res_name) {
+            found |= strstr(class_hint.res_name, needle) != NULL;
+            XFree(class_hint.res_name);
+        }
     }
-    return ret;            
+    return found;
 }
 
-// find last two (non-bar) focused windows
-int find_last2(Window ws[2]) {
+int is_bar(Window w) {
+    return win_class_contains(w, barname);
+}
+
+// find last two (non-bar) focused clients
+int find_last2(client* cs[2]) {
     if (!cur) return 0;
 
     client* front = cur;
@@ -183,7 +195,7 @@ int find_last2(Window ws[2]) {
 
     do {
         if (!is_bar(c->w)) {
-            ws[found++] = c->w;
+            cs[found++] = c;
             if (found == 2) return 1;
         }
         c = c->prev;
@@ -192,30 +204,59 @@ int find_last2(Window ws[2]) {
 }
 
 void win_split2(const Arg arg) {
-    Window ws[2];
-    if (find_last2(ws)) {
-        Window cur_fcs = cur->w;
-        cur->w = ws[0];
+    client* cs[2];
+    if (find_last2(cs)) {
+        client* cur_client = cur;
+        cur = cs[0];
         win_snap_left((Arg){0});
-        cur->w = ws[1];
+        cur = cs[1];
         win_snap_right((Arg){0});
-        cur->w = cur_fcs;
+        cur = cur_client;
     }
 }
 
-void win_swap2(const Arg arg) {
-    if (!cur || !cur->prev) return;
+// find last two snapped clients [L,R] ==> returns first wrsz
+int find_last2_snapped(client* cs[2]) {
+    if (!cur) return 0;
 
-    if (cur->wrsz == WIN_RSZ_SNL) {
+    client* front = cur;
+    client* c = cur;
+    win_resized_ty_t first_wrsz = 0;
+
+    do {
+        if (!is_bar(c->w)) {
+        FILE* f=fopen("m.log","a+");
+        fprintf(f, "maow: %d\n", c->wrsz);
+        fflush(f);
+        fclose(f);
+            if (c->wrsz == WIN_RSZ_SNL || c->wrsz == WIN_RSZ_SNR) {
+                if (first_wrsz == 0) {
+                    first_wrsz = c->wrsz;
+                    cs[0] = c;
+                } else if (c->wrsz != first_wrsz) {
+                    cs[1] = c;
+                    return first_wrsz;
+                }
+            }
+        }
+        c = c->prev;
+    } while (c != front);
+    return 0;
+}
+
+void win_swap2(const Arg arg) {
+    client* cs[2];
+    win_resized_ty_t first_wrsz;
+
+
+    if ((first_wrsz = find_last2_snapped(cs))) {
+        client* cur_client = cur;
+        int first_snr = first_wrsz == WIN_RSZ_SNR; // waow
+        cur = cs[first_snr];
         win_snap_right((Arg){0});
-        cur->w = cur->prev->w;
+        cur = cs[!first_snr];
         win_snap_left((Arg){0});
-        cur->w = cur->next->w;
-    } else {
-        win_snap_left((Arg){0});
-        cur->w = cur->prev->w;
-        win_snap_right((Arg){0});
-        cur->w = cur->next->w;
+        cur = cur_client;
     }
 }
 
@@ -293,19 +334,8 @@ void map_request(XEvent *e) {
 
     if (wx + wy == 0) win_center((Arg){0});
 
-    char* wm_class = NULL;
-    XClassHint class_hint;
-    if (XGetClassHint(d, w, &class_hint)) {
-        wm_class = class_hint.res_name;
-        if (wm_class != NULL) {
-            for (int i = 0; auto_fullscreen[i] != 0; i++) {
-                if (strstr(wm_class, auto_fullscreen[i]) != NULL) {
-                    win_fs((Arg){0});
-                }
-            }
-        }
-        if (class_hint.res_name) XFree(class_hint.res_name);
-        if (class_hint.res_class) XFree(class_hint.res_class);
+    for (int i = 0; auto_fullscreen[i] != 0; i++) {
+        if (win_class_contains(w, auto_fullscreen[i])) { win_fs((Arg){0}); break; }
     }
     win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
 
