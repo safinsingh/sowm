@@ -47,7 +47,30 @@ static Atom net_atom[NetLast];
 
 #include "config.h"
 
+int win_class_contains(Window w, char* needle) {
+    char* wm_class = NULL;
+    XClassHint class_hint;
+    int found = 0;
+
+    if (XGetClassHint(d, w, &class_hint)) {
+        if (class_hint.res_class) {
+            found |= strstr(class_hint.res_class, needle) != NULL;
+            XFree(class_hint.res_class);
+        }
+        if (class_hint.res_name) {
+            found |= strstr(class_hint.res_name, needle) != NULL;
+            XFree(class_hint.res_name);
+        }
+    }
+    return found;
+}
+
+int is_bar(Window w) {
+    return win_class_contains(w, barname);
+}
+
 void win_focus(client *c) {
+    if (is_bar(c->w)) return;
     cur = c;
     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
 }
@@ -187,28 +210,6 @@ void win_snap_right(const Arg arg) {
 
 void win_fs(const Arg arg) {
     cur_win_resize_proc(WIN_RSZ_FS, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
-}
-
-int win_class_contains(Window w, char* needle) {
-    char* wm_class = NULL;
-    XClassHint class_hint;
-    int found = 0;
-
-    if (XGetClassHint(d, w, &class_hint)) {
-        if (class_hint.res_class) {
-            found |= strstr(class_hint.res_class, needle) != NULL;
-            XFree(class_hint.res_class);
-        }
-        if (class_hint.res_name) {
-            found |= strstr(class_hint.res_name, needle) != NULL;
-            XFree(class_hint.res_name);
-        }
-    }
-    return found;
-}
-
-int is_bar(Window w) {
-    return win_class_contains(w, barname);
 }
 
 // find last two (non-bar) focused clients
