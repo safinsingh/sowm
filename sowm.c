@@ -34,6 +34,17 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [MotionNotify]     = notify_motion
 };
 
+enum atoms_net {
+    NetSupported,
+    NetNumberOfDesktops,
+    NetCurrentDesktop,
+    NetClientList,
+    NetLast
+};
+
+// thanks berrywm
+static Atom net_atom[NetLast];
+
 #include "config.h"
 
 void win_focus(client *c) {
@@ -89,6 +100,11 @@ void button_release(XEvent *e) {
     mouse.subwindow = 0;
 }
 
+// adding always makes a ws active; polybar only cares _NET_CLIENT_LIST>0
+void ewmh_set_ws_active() {
+    XChangeProperty(d, root, net_atom[NetClientList], XA_WINDOW, 32, PropModeReplace, (unsigned char *)cur->w, 1);
+}
+
 void win_add(Window w) {
     client *c;
 
@@ -109,6 +125,13 @@ void win_add(Window w) {
     }
 
     ws_save(ws);
+    // ewmh_set_ws_active();
+}
+
+// only on del do we need to check if the ws has 0 clients
+void ewmh_set_ws_inactive() {
+    Window empty_list[1] = {0};
+    XChangeProperty(d, root, net_atom[NetClientList], XA_WINDOW, 32, PropModeReplace, (unsigned char *)empty_list, 0);
 }
 
 void win_del(Window w) {
@@ -117,7 +140,10 @@ void win_del(Window w) {
     for win if (c->w == w) x = c;
 
     if (!list || !x)  return;
-    if (x->prev == x) list = cur = 0;
+    if (x->prev == x) {
+        list = cur = 0;
+        // ewmh_set_ws_inactive();
+    }
     if (list == x)    list = x->next;
     if (x->next)      x->next->prev = x->prev;
     if (x->prev)      x->prev->next = x->next;
@@ -289,6 +315,11 @@ void win_next(const Arg arg) {
     win_focus(cur->next);
 }
 
+void ewmh_set_current_desktop() {
+    long desktop = ws - 1;
+    XChangeProperty(d, root, net_atom[NetCurrentDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &desktop, 1);
+}
+
 void ws_go(const Arg arg) {
     int tmp = ws;
 
@@ -306,6 +337,8 @@ void ws_go(const Arg arg) {
     ws_sel(arg.i);
 
     if (list) win_focus(list); else cur = 0;
+
+    ewmh_set_current_desktop();
 }
 
 void configure_request(XEvent *e) {
@@ -399,6 +432,17 @@ int main(void) {
          
     XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
+
+    // ewmh atoms
+    net_atom[NetSupported]          = XInternAtom(d, "_NET_SUPPORTED", False);
+    net_atom[NetNumberOfDesktops]   = XInternAtom(d, "_NET_NUMBER_OF_DESKTOPS", False);
+    net_atom[NetCurrentDesktop]     = XInternAtom(d, "_NET_CURRENT_DESKTOP", False);
+    net_atom[NetClientList]         = XInternAtom(d, "_NET_CLIENT_LIST", False);
+
+    XChangeProperty(d, root, net_atom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)net_atom, NetLast);
+    long number_of_desktops = sizeof(ws_list) / sizeof(ws_list[0]);
+    XChangeProperty(d, root, net_atom[NetNumberOfDesktops], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&number_of_desktops, 1);
+
     input_grab(root);
 
     while (1 && !XNextEvent(d, &ev)) // 1 && will forever be here.
