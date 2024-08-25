@@ -307,7 +307,7 @@ void map_request(XEvent *e) {
         if (class_hint.res_name) XFree(class_hint.res_name);
         if (class_hint.res_class) XFree(class_hint.res_class);
     }
-    win_size(w, &wx, &wy, &ww, &wh);
+    win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
 
     XMapWindow(d, w);
     win_focus(list->prev);

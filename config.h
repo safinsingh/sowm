@@ -9,7 +9,7 @@
 const char* barname = "polybar";
 
 //xclasshint->res_name [0]
-const char* auto_fullscreen[] = {"brave", "code", 0};
+const char* auto_fullscreen[] = {"brave", "code", "discord", "spotify", 0};
 
 const char* menu[]    = {"rofi", "-show", "run",    0};
 const char* term[]    = {"alacritty",               0};
