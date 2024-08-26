@@ -11,17 +11,19 @@ const char* barname = "polybar";
 //xclasshint->res_name [0]
 const char* auto_fullscreen[] = {"brave", "code", "discord", "spotify", "firefox", 0};
 
+#define SCRIPT_DIR "/home/tourist/scripts/"
+
 const char* menu[]    = {"rofi", "-show", "run",    0};
 const char* term[]    = {"alacritty",               0};
 const char* lock[]    = {"xsecurelock",             0};
-const char* briup[]   = {"bri", "10", "+",          0};
-const char* bridown[] = {"bri", "10", "-",          0};
 const char* ex[]      = {"pkill", "sowm",           0};
+const char* briup[]   = {"brightnessctl", "s", "+10%",              0};
+const char* bridown[] = {"brightnessctl", "s", "-10%",              0};
 const char* voldown[] = {"pactl", "set-sink-volume", "0", "-5%",    0};
 const char* volup[]   = {"pactl", "set-sink-volume", "0", "+5%",    0};
 const char* volmute[] = {"pactl", "set-sink-mute", "0", "toggle",   0};
-const char* scrot[]         = {"/home/tourist/scripts/screenshot",          0};
-const char* scrot_save[]    = {"/home/tourist/scripts/screenshot", "save",  0};
+const char* scrot[]         = {SCRIPT_DIR "screenshot",             0};
+const char* scrot_save[]    = {SCRIPT_DIR "screenshot", "save",     0};
 
 static struct key keys[] = {
     {MOD,      XK_w,   win_kill,        {0}},
