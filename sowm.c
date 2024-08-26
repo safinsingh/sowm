@@ -48,7 +48,6 @@ static Atom net_atom[NetLast];
 #include "config.h"
 
 int win_class_contains(Window w, char* needle) {
-    char* wm_class = NULL;
     XClassHint class_hint;
     int found = 0;
 
