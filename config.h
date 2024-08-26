@@ -13,7 +13,6 @@ const char* auto_fullscreen[] = {"brave", "code", "discord", "spotify", "firefox
 
 const char* menu[]    = {"rofi", "-show", "run",    0};
 const char* term[]    = {"alacritty",               0};
-const char* scrot[]   = {"scr",                     0};
 const char* lock[]    = {"xsecurelock",             0};
 const char* briup[]   = {"bri", "10", "+",          0};
 const char* bridown[] = {"bri", "10", "-",          0};
@@ -21,6 +20,8 @@ const char* ex[]      = {"pkill", "sowm",           0};
 const char* voldown[] = {"pactl", "set-sink-volume", "0", "-5%",    0};
 const char* volup[]   = {"pactl", "set-sink-volume", "0", "+5%",    0};
 const char* volmute[] = {"pactl", "set-sink-mute", "0", "toggle",   0};
+const char* scrot[]         = {"/home/tourist/scripts/screenshot",          0};
+const char* scrot_save[]    = {"/home/tourist/scripts/screenshot", "save",  0};
 
 static struct key keys[] = {
     {MOD,      XK_w,   win_kill,        {0}},
@@ -36,7 +37,6 @@ static struct key keys[] = {
     {Mod1Mask|ShiftMask, XK_Tab, win_prev,   {0}},
 
     {MOD, XK_space,         run, {.com = menu}},
-    {MOD, XK_p,             run, {.com = scrot}},
     {MOD, XK_Return,        run, {.com = term}},
     {MOD|ShiftMask, XK_l,   run, {.com = lock}},
 
@@ -47,6 +47,8 @@ static struct key keys[] = {
     {0,   XF86XK_AudioMute,         run, {.com = volmute}},
     {0,   XF86XK_MonBrightnessUp,   run, {.com = briup}},
     {0,   XF86XK_MonBrightnessDown, run, {.com = bridown}},
+    {0,   XK_Print,                 run, {.com = scrot}},
+    {MOD, XK_Print,                 run, {.com = scrot_save}},
 
     {MOD,           XK_1, ws_go,     {.i = 1}},
     {MOD|ShiftMask, XK_1, win_to_ws, {.i = 1}},
