@@ -31,7 +31,8 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [MappingNotify]    = mapping_notify,
     [DestroyNotify]    = notify_destroy,
     [EnterNotify]      = notify_enter,
-    [MotionNotify]     = notify_motion
+    [MotionNotify]     = notify_motion,
+    [ClientMessage]    = client_message
 };
 
 enum atoms_net {
@@ -339,6 +340,14 @@ void ws_go(const Arg arg) {
     if (list) win_focus(list); else cur = 0;
 
     ewmh_set_current_desktop();
+}
+
+void client_message(XEvent* e) {
+    XClientMessageEvent* ev = &e->xclient;
+    if (ev->message_type == net_atom[NetCurrentDesktop]) {
+        unsigned long desktop = ev->data.l[0] + 1;
+        ws_go((Arg){.i=desktop});
+    }
 }
 
 void configure_request(XEvent *e) {
