@@ -19,6 +19,8 @@ const char* lock[]    = {"xsecurelock",             0};
 const char* ex[]      = {"pkill", "sowm",           0};
 const char* briup[]   = {"brightnessctl", "s", "+10%",              0};
 const char* bridown[] = {"brightnessctl", "s", "-10%",              0};
+const char* kbriup[]   = {"brightnessctl", "--device='asus::kbd_backlight'", "s", "+10%", 0};
+const char* kbridown[]   = {"brightnessctl", "--device='asus::kbd_backlight'", "s", "-10%", 0};
 const char* voldown[] = {"pactl", "set-sink-volume", "0", "-5%",    0};
 const char* volup[]   = {"pactl", "set-sink-volume", "0", "+5%",    0};
 const char* volmute[] = {"pactl", "set-sink-mute", "0", "toggle",   0};
@@ -49,6 +51,8 @@ static struct key keys[] = {
     {0,   XF86XK_AudioMute,         run, {.com = volmute}},
     {0,   XF86XK_MonBrightnessUp,   run, {.com = briup}},
     {0,   XF86XK_MonBrightnessDown, run, {.com = bridown}},
+    {0,   XF86XK_KbdBrightnessUp,   run, {.com = kbriup}},
+    {0,   XF86XK_KbdBrightnessDown, run, {.com = kbridown}},
     {0,   XK_Print,                 run, {.com = scrot}},
     {MOD, XK_Print,                 run, {.com = scrot_save}},
 
