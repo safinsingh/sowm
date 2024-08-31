@@ -12,20 +12,21 @@ const char* barname = "polybar";
 const char* auto_fullscreen[] = {"brave", "code", "discord", "spotify", "firefox", 0};
 
 #define SCRIPT_DIR "/home/tourist/scripts/"
+const char* scrot[]       = {SCRIPT_DIR "screenshot", 0};
+const char* scrot_save[]  = {SCRIPT_DIR "screenshot", "save", 0};
+const char* colorpicker[] = {SCRIPT_DIR "colorpick", 0};
 
-const char* menu[]    = {"rofi", "-show", "run",    0};
-const char* term[]    = {"alacritty",               0};
-const char* lock[]    = {"xsecurelock",             0};
-const char* ex[]      = {"pkill", "sowm",           0};
-const char* briup[]   = {"brightnessctl", "s", "+10%",              0};
-const char* bridown[] = {"brightnessctl", "s", "-10%",              0};
-const char* kbriup[]   = {"brightnessctl", "--device='asus::kbd_backlight'", "s", "+10%", 0};
-const char* kbridown[]   = {"brightnessctl", "--device='asus::kbd_backlight'", "s", "-10%", 0};
-const char* voldown[] = {"pactl", "set-sink-volume", "0", "-5%",    0};
-const char* volup[]   = {"pactl", "set-sink-volume", "0", "+5%",    0};
-const char* volmute[] = {"pactl", "set-sink-mute", "0", "toggle",   0};
-const char* scrot[]         = {SCRIPT_DIR "screenshot",             0};
-const char* scrot_save[]    = {SCRIPT_DIR "screenshot", "save",     0};
+const char* menu[]        = {"rofi", "-show", "run", 0};
+const char* term[]        = {"alacritty", 0};
+const char* lock[]        = {"xsecurelock", 0};
+const char* ex[]          = {"pkill", "sowm", 0};
+const char* briup[]       = {"brightnessctl", "s", "+10%", 0};
+const char* bridown[]     = {"brightnessctl", "s", "-10%", 0};
+const char* kbriup[]      = {"brightnessctl", "--device='asus::kbd_backlight'", "s", "+10%", 0};
+const char* kbridown[]    = {"brightnessctl", "--device='asus::kbd_backlight'", "s", "-10%", 0};
+const char* voldown[]     = {"pactl", "set-sink-volume", "0", "-5%", 0};
+const char* volup[]       = {"pactl", "set-sink-volume", "0", "+5%", 0};
+const char* volmute[]     = {"pactl", "set-sink-mute", "0", "toggle", 0};
 
 static struct key keys[] = {
     {MOD,      XK_w,   win_kill,        {0}},
@@ -42,8 +43,8 @@ static struct key keys[] = {
 
     {MOD, XK_space,         run, {.com = menu}},
     {MOD, XK_Return,        run, {.com = term}},
+    {MOD|ShiftMask, XK_c,   run, {.com = colorpicker}},
     {MOD|ShiftMask, XK_l,   run, {.com = lock}},
-
     {MOD|ShiftMask, XK_e,    run, {.com = ex}},
 
     {0,   XF86XK_AudioLowerVolume,  run, {.com = voldown}},
