@@ -17,6 +17,7 @@
 static client       *list = {0}, *ws_list[6] = {0}, *cur;
 static int          ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
+static int s;
 
 static Display      *d;
 static XButtonEvent mouse;
@@ -40,13 +41,26 @@ enum atoms_net {
     NetNumberOfDesktops,
     NetCurrentDesktop,
     NetClientList,
+    NetWMWindowType,
+    NetWMWindowTypeDialog,
+    NetWMWindowTypeMenu,
+    NetWMWindowTypeTooltip,
+    NetWMWindowTypeNotification,
+    NetWMState,
     NetLast
 };
+
 
 // thanks berrywm
 static Atom net_atom[NetLast];
 
 #include "config.h"
+
+unsigned long getcolor(const char *col) {
+    Colormap m = DefaultColormap(d, s);
+    XColor c;
+    return (!XAllocNamedColor(d, m, col, &c, &c))?0:c.pixel;
+}
 
 int win_class_contains(Window w, char* needle) {
     XClassHint class_hint;
@@ -69,9 +83,67 @@ int is_bar(Window w) {
     return win_class_contains(w, barname);
 }
 
+int is_auxiliary_window(Window w) {
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    Atom *prop = NULL;
+
+    if (XGetWindowProperty(d, w, net_atom[NetWMWindowType], 0, sizeof(Atom), False, XA_ATOM, 
+                           &actual_type, &actual_format, &nitems, &bytes_after, (unsigned char **) &prop) == Success) {
+        if (nitems > 0) {
+            // Check if the window is a dialog, menu, tooltip, or notification
+            if (*prop == net_atom[NetWMWindowTypeDialog] ||
+                *prop == net_atom[NetWMWindowTypeMenu] ||
+                *prop == net_atom[NetWMWindowTypeTooltip] ||
+                *prop == net_atom[NetWMWindowTypeNotification]) {
+                XFree(prop);
+                return 1;
+            }
+        }
+        XFree(prop);
+    }
+
+    return 0;
+}
+
+int is_visible_window(Window w) {
+    XWindowAttributes attr;
+    XGetWindowAttributes(d, w, &attr);
+
+    // Check if the window is viewable (mapped and visible) and not override-redirect
+    if (attr.map_state != IsViewable || attr.override_redirect) {
+        return 0;
+    }
+
+    // Skip 1x1 windows (or similarly tiny ones)
+    if (attr.width <= 1 && attr.height <= 1) {
+        return 0;
+    }
+
+    return 1;
+}
+
+int is_useless_window(Window w) {
+    return is_bar(w) || !is_visible_window(w) || is_auxiliary_window(w);
+}
+
 void win_focus(client *c) {
-    if (is_bar(c->w)) return;
+    if (is_useless_window(c->w)) return;
+
+
+    if (cur) XSetWindowBorder(d, cur->w, getcolor(BORDER_NORMAL));
+
     cur = c;
+
+XSetWindowBorder(d, cur->w, getcolor(BORDER_SELECT));
+
+    if (cur->wrsz == WIN_RSZ_FS) {
+        XConfigureWindow(d, cur->w, CWBorderWidth, &(XWindowChanges){.border_width = 0});
+    } else {
+        XConfigureWindow(d, cur->w, CWBorderWidth, &(XWindowChanges){.border_width = BORDER_WIDTH});
+    }
+
     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
 }
 
@@ -83,6 +155,7 @@ void notify_destroy(XEvent *e) {
 
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
+    while(XCheckTypedWindowEvent(d, mouse.subwindow, MotionNotify, e));
 
     for win if (c->w == e->xcrossing.window) win_focus(c);
 }
@@ -148,6 +221,7 @@ void win_add(Window w) {
     }
 
     ws_save(ws);
+    win_focus(c);
     // ewmh_set_ws_active();
 }
 
@@ -210,6 +284,8 @@ void win_snap_right(const Arg arg) {
 
 void win_fs(const Arg arg) {
     cur_win_resize_proc(WIN_RSZ_FS, 0, SCREEN_TOP, sw, sh - BAR_SIZE);
+
+        win_focus(cur);
 }
 
 // find last two (non-bar) focused clients
@@ -221,7 +297,7 @@ int find_last2(client* cs[2]) {
     int found = 0;
 
     do {
-        if (!is_bar(c->w)) {
+        if (!is_useless_window(c->w)) {
             cs[found++] = c;
             if (found == 2) return 1;
         }
@@ -251,7 +327,7 @@ int find_last2_snapped(client* cs[2]) {
     win_resized_ty_t first_wrsz = 0;
 
     do {
-        if (!is_bar(c->w)) {
+        if (!is_useless_window(c->w)) {
             if (c->wrsz == WIN_RSZ_SNL || c->wrsz == WIN_RSZ_SNR) {
                 if (first_wrsz == 0) {
                     first_wrsz = c->wrsz;
@@ -302,18 +378,28 @@ void win_to_ws(const Arg arg) {
 
 void win_prev(const Arg arg) {
     if (!cur) return;
-    if (is_bar(cur->prev->w)) cur = cur->prev;
 
-    XRaiseWindow(d, cur->prev->w);
-    win_focus(cur->prev);
+    client *c = cur->prev;
+    while (is_useless_window(c->w)) {
+        c = c->prev;
+        if (c == cur) return; // Prevent infinite loop
+    }
+
+    XRaiseWindow(d, c->w);
+    win_focus(c);
 }
 
 void win_next(const Arg arg) {
     if (!cur) return;
-    if (is_bar(cur->next->w)) cur = cur->next;
 
-    XRaiseWindow(d, cur->next->w);
-    win_focus(cur->next);
+    client *c = cur->next;
+    while (is_useless_window(c->w)) {
+        c = c->next;
+        if (c == cur) return; // Prevent infinite loop
+    }
+
+    XRaiseWindow(d, c->w);
+    win_focus(c);
 }
 
 void ewmh_set_current_desktop() {
@@ -443,10 +529,16 @@ int main(void) {
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
 
     // ewmh atoms
-    net_atom[NetSupported]          = XInternAtom(d, "_NET_SUPPORTED", False);
-    net_atom[NetNumberOfDesktops]   = XInternAtom(d, "_NET_NUMBER_OF_DESKTOPS", False);
-    net_atom[NetCurrentDesktop]     = XInternAtom(d, "_NET_CURRENT_DESKTOP", False);
-    net_atom[NetClientList]         = XInternAtom(d, "_NET_CLIENT_LIST", False);
+    net_atom[NetSupported]              = XInternAtom(d, "_NET_SUPPORTED", False);
+    net_atom[NetNumberOfDesktops]       = XInternAtom(d, "_NET_NUMBER_OF_DESKTOPS", False);
+    net_atom[NetCurrentDesktop]         = XInternAtom(d, "_NET_CURRENT_DESKTOP", False);
+    net_atom[NetClientList]             = XInternAtom(d, "_NET_CLIENT_LIST", False);
+    net_atom[NetWMWindowType]           = XInternAtom(d, "_NET_WM_WINDOW_TYPE", False);
+    net_atom[NetWMWindowTypeDialog]     = XInternAtom(d, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+    net_atom[NetWMWindowTypeMenu]       = XInternAtom(d, "_NET_WM_WINDOW_TYPE_MENU", False);
+    net_atom[NetWMWindowTypeTooltip]    = XInternAtom(d, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
+    net_atom[NetWMWindowTypeNotification] = XInternAtom(d, "_NET_WM_WINDOW_TYPE_NOTIFICATION", False);
+    net_atom[NetWMState]                = XInternAtom(d, "_NET_WM_STATE", False);
 
     XChangeProperty(d, root, net_atom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)net_atom, NetLast);
     long number_of_desktops = sizeof(ws_list) / sizeof(ws_list[0]);

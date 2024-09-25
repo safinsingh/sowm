@@ -4,8 +4,13 @@
 #define MOD Mod4Mask
 
 #define BAR_SIZE 32
-#define BAR_BOTTOM (0)
+#define BAR_BOTTOM (1)
 #define SCREEN_TOP (BAR_BOTTOM ? 0 : BAR_SIZE)
+
+#define BORDER_SELECT   "#ffffff"
+#define BORDER_NORMAL   "#666666"
+#define BORDER_WIDTH    1
+
 const char* barname = "polybar";
 
 //xclasshint->res_name [0]
